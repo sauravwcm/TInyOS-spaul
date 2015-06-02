@@ -52,7 +52,7 @@ implementation
         //calculate controller OP
         //err = ref - data;
         sendVal = (kp * err) + (ki * integral);
-        //sendVal = 555;
+       
         //controller OP calculated	
 
             if(radioBusy==FALSE)
