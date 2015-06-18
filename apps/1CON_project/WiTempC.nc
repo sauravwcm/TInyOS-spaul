@@ -101,6 +101,13 @@ implementation
 
 	event message_t * Receive.receive(message_t *msg, void *payload, uint8_t len)
 	{
+		/*static count=0;
+
+		if (count==0)
+		{
+			call Timer.startPeriodic(100);
+			count++;
+		}*/
 		if(len == sizeof(WsnMsg_t))
 		{
 			WsnMsg_t * incomingPacket = (WsnMsg_t*) payload;

@@ -1,4 +1,8 @@
 #include "WiTemp.h"
+
+#define sigma 0.1
+
+
 module WiTempC
 {
 	uses
@@ -29,13 +33,13 @@ implementation
 	uint8_t  sendVal=0, count=0;
 	message_t packet;
 	//uint8_t serial_data,timeout=0xff;
-	uint16_t ser_byte=0;
+	uint16_t ser_byte=0, e=0;
   	uint16_t length=1;
 	
 
 	event void Boot.booted()
 	{
-		call Timer.startPeriodic(100);
+		//call Timer.startPeriodic(100);
 		call Leds.led1On();
 		call RadioControl.start();
 		call SerialControl.start();
@@ -46,7 +50,7 @@ implementation
 	{
 		call Leds.led1Off();
 	
-		if(radioBusy==FALSE)
+		/*if(radioBusy==FALSE)
             {
                 //creating packet
                 WsnMsg_t* msg= call RadioPacket.getPayload(& packet, sizeof(WsnMsg_t));
@@ -67,13 +71,41 @@ implementation
             {
 		 	call Leds.led0Toggle();
             }	
-
+		*/	
     }
 
 	async event void UartStream.receivedByte(uint8_t byte)
   {
+
     call Leds.led0Toggle();
     
+    e = (uint16_t)byte - ser_byte ;
+
+    if (e<0)
+	{
+		e= -e;
+	}
+
+    if ( e > (float)(sigma*ser_byte))
+    {
+    	if(radioBusy==FALSE)
+            {
+                //creating packet
+                WsnMsg_t* msg= call RadioPacket.getPayload(& packet, sizeof(WsnMsg_t));
+                msg -> NodeID= TOS_NODE_ID;
+                msg -> Data = ser_byte;
+		
+                //sending the packet
+                if(call AMSend.send(1, & packet, sizeof(WsnMsg_t))==SUCCESS)
+                {
+                    radioBusy=TRUE;
+                    call Leds.led2Toggle();
+                    //call UartByte.send(msg -> Data);
+
+                }
+            }
+    }
+
     ser_byte = (uint16_t)byte;
 
     	
@@ -143,3 +175,4 @@ implementation
 		// TODO Auto-generated method stub
 	}
 }
+

@@ -37,10 +37,26 @@ implementation
 
 	event void Boot.booted()
 	{
-		call Timer.startPeriodic(100);
+		//call Timer.startPeriodic(100);
 		call Leds.led1On();
 		call AMControl.start();
 		call SerialControl.start();
+
+
+		if(radioBusy==FALSE)
+            	{
+                	//creating packet
+                	WsnMsg_t* msg= call Packet.getPayload(& packet, sizeof(WsnMsg_t));
+                	msg -> NodeID= TOS_NODE_ID;
+                	msg -> Data = 50;
+					//msg -> Data = data;
+                	//sending the packet
+                	if(call AMSend.send(2, & packet, sizeof(WsnMsg_t))==SUCCESS)
+                	{
+                    	radioBusy=TRUE;
+                    	call Leds.led2Toggle();
+                	}
+            	}
 	}
 
 	event void Timer.fired()
@@ -48,9 +64,7 @@ implementation
 		call Leds.led1Off();
 		call Leds.led2Toggle();
         	
-        integral = (uint16_t)(integral + (err * dt)) ;	
-        //calculate controller OP
-        //err = ref - data;
+        /*integral = (uint16_t)(integral + (err * dt)) ;	
         sendVal = (kp * err) + (ki * integral);
        
         //controller OP calculated	
@@ -73,7 +87,7 @@ implementation
             {
 		 	call Leds.led0Toggle();
             }
-		
+		*/
 	
 	}
 
@@ -104,8 +118,6 @@ implementation
 		if(len == sizeof(WsnMsg_t))
 		{
 			WsnMsg_t * incomingPacket = (WsnMsg_t*) payload;
-			//incomingPacket ->NodeID == 1;
-			//uint8_t dataL=0,dataH=0;
 			uint16_t data = incomingPacket -> Data ;
 
 			//sendVal = incomingPacket -> Data ;
@@ -117,14 +129,28 @@ implementation
 
 				err = ref - data;
 
-				//test
-				/*dataL = 0xff & data;
-        		dataH = 0xff & (data >> 8);
+				//calculate controller OP
 
-        		call UartByte.send(dataL);
-        		call UartByte.send(dataH);
-				*/
-				//test done
+				integral = (uint16_t)(integral + (err * dt)) ;	
+        		sendVal = (kp * err) + (ki * integral);
+       
+        		//controller OP calculated	
+
+            	if(radioBusy==FALSE)
+            	{
+                	//creating packet
+                	WsnMsg_t* msg= call Packet.getPayload(& packet, sizeof(WsnMsg_t));
+                	msg -> NodeID= TOS_NODE_ID;
+                	msg -> Data = sendVal;
+					//msg -> Data = data;
+                	//sending the packet
+                	if(call AMSend.send(2, & packet, sizeof(WsnMsg_t))==SUCCESS)
+                	{
+                    	radioBusy=TRUE;
+                    	call Leds.led2Toggle();
+                	}
+            	}
+				
 					
 			}	
 			else

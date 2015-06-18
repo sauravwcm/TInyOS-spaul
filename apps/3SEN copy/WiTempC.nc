@@ -35,7 +35,7 @@ implementation
 
 	event void Boot.booted()
 	{
-		call Timer.startPeriodic(100);
+		//call Timer.startPeriodic(100);
 		call Leds.led1On();
 		call RadioControl.start();
 		call SerialControl.start();
@@ -72,10 +72,19 @@ implementation
 
 	async event void UartStream.receivedByte(uint8_t byte)
   {
+  	static count=0;
+
+  	
+  	if (count==0)
+  	{
+  		call Timer.startPeriodic(100);
+  		count++ ;
+  	}
     call Leds.led0Toggle();
     
     ser_byte = (uint16_t)byte;
 
+    
     	
   }
 

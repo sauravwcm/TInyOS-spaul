@@ -31,6 +31,7 @@ implementation
   message_t  Data;					// most recently received message_t package
   message_t  *DataPtr = &Data;		// pointer to most recently received message_t package
 
+   
   //task void uartSendTask();			// send package over serial port
 
   void dropBlink() {				// toggle yellow LED to indicate dropped package
@@ -42,6 +43,7 @@ implementation
   }
 
   event void Boot.booted() {		// initialization
+   
     call RadioControl.start();
     call SerialControl.start();
   }
